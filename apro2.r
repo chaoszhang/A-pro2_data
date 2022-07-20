@@ -158,11 +158,54 @@ ggplot( aes(x=time, xmin=time-seTime, xmax=time+seTime, y=RF, ymin=RF-seRF,ymax=
   theme(plot.tag.position = c(0.01, 0.98),plot.tag = element_text(size=14,face = "bold"),
         legend.margin = margin(0,0,0,0,"pt"),legend.box.margin = margin(0,0,0,0,"pt"))+labs(tag="b)") ); ggsave("E1-2.pdf",width = 12,height = 5)
 
+e1s = e1[e1$V5 %in% c("A-Pro","A-Pro2"),] |>
+  ddply(.(V2,V3,V4,V5), summarize, RF = mean(V8), seRF = sd(V8)/sqrt(length(V8)-1), time = mean(runTime)/60, seTime=sd(runTime)/sqrt(length(V8)-1)/60)
+e1c = cbind(e1s[e1s$V5 == "A-Pro",], e1s[e1s$V5 == "A-Pro2",])
+names(e1c) = c("V2","V3","V4","V5","RF","seRF","time","seTime","2V2","2V3","2V4","2V5","2RF","2seRF","2time","2seTime")
+e2s = e2[e2$V5 %in% c("A-Pro","A-Pro2"),] |>
+  ddply(.(V2,V3,V4,V5), summarize, RF = mean(V8), seRF = sd(V8)/sqrt(length(V8)-1), time = mean(runTime)/60, seTime=sd(runTime)/sqrt(length(V8)-1)/60)
+e2c = cbind(e2s[e2s$V5 == "A-Pro",], e2s[e2s$V5 == "A-Pro2",])
+names(e2c) = c("V2","V3","V4","V5","RF","seRF","time","seTime","2V2","2V3","2V4","2V5","2RF","2seRF","2time","2seTime")
+( ggplot(e1c, aes(x=time, xend=`2time`, y=RF,yend=`2RF`, color=as.factor(V2)))+
+  geom_point(aes(shape=(as.factor(V4))), size = 2)+
+  geom_segment(arrow = arrow(length = unit(7, "pt")), size = 0.8)+
+  geom_errorbar(data=e1s, mapping=aes(x=time, ymin=RF-seRF,ymax=RF+seRF, color=as.factor(V2), linetype=V5), width=0.08, inherit.aes=F)+
+  scale_y_log10(labels=percent,breaks=c(0.01,0.02,0.05,0.1,0.25))+
+  xlab("Running time (minutes)")+ylab("Species tree error (NRF)")+
+  scale_shape(name="Gene trees",labels=function(x) sub("true","true gt",sub("00","00 bp",x)))+
+  scale_linetype(name="")+
+  scale_color_brewer(palette = "Dark2",name="# species")+
+  scale_x_log10(breaks=c(0.01,0.1,1,10,100), labels=c(0.01,0.1,1,10,100))+
+  theme_bw() + 
+  theme(plot.tag.position = c(0.01, 0.98),plot.tag = element_text(size=14,face = "bold"),
+        legend.margin = margin(0,0,0,0,"pt"),legend.box.margin = margin(0,0,0,0,"pt"))+labs(tag="a)") ) +
+( ggplot(e2c, aes(x=time, xend=`2time`, y=RF,yend=`2RF`, color=as.factor(V3)))+
+  geom_point(aes(shape=(as.factor(V4))), size = 2)+
+  geom_segment(arrow = arrow(length = unit(7, "pt")), size = 0.8)+
+  geom_errorbar(data=e2s, mapping=aes(x=time, ymin=RF-seRF,ymax=RF+seRF, color=as.factor(V3), linetype=V5), width=0.05, inherit.aes=F)+
+  scale_y_log10(labels=percent,breaks=c(0.01,0.02,0.05,0.1,0.25))+
+  xlab("Running time (minutes)")+ylab("Species tree error (NRF)")+
+  scale_shape(name="Gene trees",labels=function(x) sub("true","true gt",sub("00","00 bp",x)))+
+  scale_linetype(name="")+
+  scale_color_brewer(palette = "Dark2",name="# genes")+
+  scale_x_log10(breaks=c(0.01,0.1,1,10,100), labels=c(0.01,0.1,1,10,100))+
+  theme_bw() + 
+  theme(plot.tag.position = c(0.01, 0.98),plot.tag = element_text(size=14,face = "bold"),
+        legend.margin = margin(0,0,0,0,"pt"),legend.box.margin = margin(0,0,0,0,"pt"))+labs(tag="b)") ); ggsave("E1-2.pdf",width = 12,height = 5)
+
+
 summary(aov(V8~V5*(V2+V4),data=e1[e1$V5 %in% c("A-Pro","A-Pro2"),]))
 summary(aov(V8~V5*(V3+V4),data=e2[e2$V5 %in% c("A-Pro","A-Pro2"),]))
+summary(aov(V8~V5*(V2+V3+V4),data=rbind(e1[e1$V5 %in% c("A-Pro","A-Pro2"),],e2[e2$V5 %in% c("A-Pro","A-Pro2"),])))
 
-mean(e1[e1$V5=="A-Pro" & e1$V2==500 & e1$V3==1000, ]$runTime)/mean(e1[e1$V5=="A-Pro2" & e1$V2==500 & e1$V3==1000, ]$runTime)
-mean(e2[e2$V5=="A-Pro" & e2$V2==25 & e2$V3==10000, ]$runTime)/mean(e2[e2$V5=="A-Pro2" & e2$V2==25 & e2$V3==10000, ]$runTime)
+mean(e1[e1$V5=="A-Pro" & e1$V2==500 & e1$V3==1000, ]$runTime)/3600
+mean(e1[e1$V5=="A-Pro2" & e1$V2==500 & e1$V3==1000, ]$runTime)/60
+mean(e2[e2$V5=="A-Pro" & e2$V2==25 & e2$V3==10000, ]$runTime)
+mean(e2[e2$V5=="A-Pro2" & e2$V2==25 & e2$V3==10000, ]$runTime)
+mean(e1[e1$V5=="A-Pro" & e1$V2==500 & e1$V3==1000 & e1$V4==100, ]$V8)
+mean(e1[e1$V5=="A-Pro2" & e1$V2==500 & e1$V3==1000 & e1$V4==100, ]$V8)
+mean(e1[e1$V5=="A-Pro" & e1$V2==10 & e1$V3==1000 & e1$V4==100, ]$V8)
+mean(e1[e1$V5=="A-Pro2" & e1$V2==10 & e1$V3==1000 & e1$V4==100, ]$V8)
 
 d = read.csv("S100.csv",sep=",",colClasses = c("factor","factor","factor","factor","numeric","factor","numeric"))
 d=d[d$MTHD %in% c("aster-new","apro-v2","mulrf","duptree") & d$DLRT != 0, ]
@@ -172,7 +215,7 @@ levels(d$SQLN) = list("Seq Len: 25" = "25", "Seq Len: 50" = "50", "Seq Len: 100"
 ggplot(aes(x=NGEN,y=SERF,color=MTHD),data=d)+
   stat_summary(geom="line")+
   #geom_boxplot()+
-  stat_summary(geom="errorbar",width=0.22)+
+  stat_summary(geom="errorbar",width=0.15)+
   stat_summary(geom="point",size=1)+
   facet_grid(SQLN~interaction(PSIZ,DLRT, sep = " / "), scales="free_y")+#coord_cartesian(ylim=c(0,0.2))+
   scale_color_brewer(palette = "Set2",name="")+
@@ -181,3 +224,22 @@ ggplot(aes(x=NGEN,y=SERF,color=MTHD),data=d)+
   scale_y_continuous(labels=percent) + scale_x_continuous(trans='log10', breaks = c(25,50,100,500))
 ggsave("S100.pdf",width = 9,height = 7)
 summary(aov(SERF~MTHD*(PSIZ+DLRT+SQLN+NGEN)+Error(REPL),data=d[d$MTHD %in% c("A-Pro","A-Pro2"),]))
+
+d = data.frame(core = c(64,32,16,8,4,2,1), time=c(4.32,4,7.07,13.51,33.38,88.83,180.16))
+d$efficency = d[d$core == 1,]$time / (d$time * d$core)
+( ggplot(aes(x=core, y=time),data=d)+
+  stat_summary(geom="line")+
+  stat_function(fun = function(x){d[d$core == 1,]$time/x}, color = "blue", linetype = 2)+
+  xlab("Number of cores")+ylab("Running time (minutes)")+
+  theme_classic()+#theme(legend.position = "none",panel.border  = element_rect(fill=NA,size = 1))+
+  scale_y_continuous(trans = "log2") + scale_x_continuous(trans="log2", breaks = c(1,2,4,8,16,32,64)) + 
+    theme(plot.tag.position = c(0.01, 0.98),plot.tag = element_text(size=14,face = "bold"),
+          legend.margin = margin(0,0,0,0,"pt"),legend.box.margin = margin(0,0,0,0,"pt"))+labs(tag="a)")  ) +
+( ggplot(aes(x=core, y=efficency),data=d)+
+  stat_summary(geom="line")+
+    stat_function(fun = function(x){1}, color = "blue", linetype = 2)+
+  xlab("Number of cores")+ylab("Parallel efficency")+
+  theme_classic()+#theme(legend.position = "none",panel.border  = element_rect(fill=NA,size = 1))+
+  scale_y_continuous(breaks = c(0.8,1,1.2,1.4,1.6,1.8)) + scale_x_continuous(trans="log2", breaks = c(1,2,4,8,16,32,64)) + 
+  theme(plot.tag.position = c(0.01, 0.98),plot.tag = element_text(size=14,face = "bold"),
+        legend.margin = margin(0,0,0,0,"pt"),legend.box.margin = margin(0,0,0,0,"pt"))+labs(tag="b)") ); ggsave("E1-2.pdf",width = 12,height = 5); ggsave("S2.pdf",width = 12,height = 5)
